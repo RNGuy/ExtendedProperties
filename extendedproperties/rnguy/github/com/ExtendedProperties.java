@@ -33,19 +33,20 @@ import java.util.Properties;
  * 
  * @author Aaron Hannah
  * 2015-06-29
+ * Last modified: 2015-06-30
  *
  */
 public class ExtendedProperties extends Properties {
-    private static final long serialVersionUID = 2015062900000000000L;
+    private static final long serialVersionUID = 2015063000000000000L;
     private char delimiter = '%';
     private static final char[] SPECIAL_CHARS = {'(','[','{','\\','^','-','=','$','!','|',']','}',')','?','*','+','.'};
 
-    public ExtendedProperties(Properties properties) {
-        super(properties);
-    }
-
     public ExtendedProperties() {
         super();
+    }
+    
+    public ExtendedProperties(Properties properties) {
+        super(properties);
     }
     
     /**
@@ -64,77 +65,27 @@ public class ExtendedProperties extends Properties {
     }
     
     /**
-     * <p>Return a new ExtendedProperties object containg the key/value pairs associated with the
-     * specified prefix.</p>
-     * @param prefix - the prefix that denotes a group of properties.
-     * @return ExtendedProperties object with the properties for the specified prefix.
+     * <p>Add the key/value pairs from a set of properties to this one. Duplicate keys will be overridden with
+     * the values in the supplied Properties object.</p>
+     * @param properties - The properties to add.
      */
-    public ExtendedProperties getPropertiesForPrefix(String prefix) {
-        if (prefix == null)
-            throw new NullPointerException("Prefix cannot be null");
-        
-        if (prefix.matches(".*\\.$"))
-            prefix = prefix.replaceAll("\\.", "");
-        
-        ExtendedProperties props = new ExtendedProperties();
-        String regex = "^" + prefix + "\\.";
-        
-        for(String key : stringPropertyNames())
-            if (key.matches(regex + ".*"))
-                props.setProperty(key.replaceFirst(regex, ""), getProperty(key));
-        
-        return props;
+    public void addProperties(Properties properties) {
+        addProperties(properties, true);
     }
     
     /**
-     * <p>Get the property array associated with the specified key.</p>
-     * @param key - the property key.
-     * @return the array of values associated with the specified key.
+     * <p>Add the key/value pairs from a set of properties to this one. Duplicate keys will either be overridden
+     * with the value from the supplied Properties or skipped, depending on OVERWRITE.</p>
+     * @param properties - The properties to add.
+     * @param overwrite - Specifies if duplicate keys should be overridden.
      */
-    public String[] getPropertyArray(String key) {
-        return getProperty(key).split(Character.toString(delimiter));
-    }
-    
-    /**
-     * <p>Set a property containing an array of values. Use getPropertyArray to retrieve a property into a String array.</p>
-     * @param key - the key to be placed into this property list.
-     * @param values - the array corresponding to key.
-     * @return the previous value (as a String, not an array) of the specified key in this property list, or null, if it did not have one.
-     */
-    public Object setPropertyArray(String key, String[] values) {
-        String array = "";
+    public void addProperties(Properties properties, boolean overwrite) {
+        if (properties == null)
+            throw new NullPointerException("properties cannot be null");
         
-        for(String value : values) {
-            if (value.contains(Character.toString(delimiter)))
-                throw new IllegalArgumentException("Array of values cannot contain the delimiter: " + delimiter);
-            
-            array += array.equals("") ? value : delimiter + value;
-        }
-        
-        return setProperty(key, array);
-    }
-    
-    /**
-     * <p>Change the delimiter to the character provided. Default is '%'. This will update the delimiter in all
-     * currently stored properties as well.</p>
-     * <p>The following characters cannot be used to delimit a String array: ([{\^-=$!|]})?*+.</p>
-     * @param delimiter - The delimiter character to use in separating subsequent arrays.
-     * @param replaceAll - Specifies if the current delimiter should be replaced in all values.
-     * @return true if delimiter is successfully updated, false otherwise.
-     */
-    public boolean setDelimiter(char delimiter) {
-        validateDelimiter(delimiter);
-        
-        for(Object value : values())
-            if (((String)value).contains(Character.toString(delimiter)))
-                return false;
-        
-        for(String key : stringPropertyNames())
-            if (((String)get(key)).contains(Character.toString(this.delimiter)))
-                put(key, ((String)get(key)).replaceAll(Character.toString(this.delimiter), Character.toString(delimiter)));
-        this.delimiter = delimiter;
-        
-        return true;
+        for(String key : properties.stringPropertyNames())
+            if ((containsKey(key) && overwrite) || (!containsKey(key)))
+                setProperty(key, properties.getProperty(key));
     }
     
     /**
@@ -196,6 +147,80 @@ public class ExtendedProperties extends Properties {
             list.put(null, noPrefix);
         
         return list.values().toArray(new ExtendedProperties[0]);
+    }
+
+    /**
+     * <p>Return a new ExtendedProperties object containg the key/value pairs associated with the
+     * specified prefix.</p>
+     * @param prefix - the prefix that denotes a group of properties.
+     * @return ExtendedProperties object with the properties for the specified prefix.
+     */
+    public ExtendedProperties getPropertiesForPrefix(String prefix) {
+        if (prefix == null)
+            throw new NullPointerException("Prefix cannot be null");
+        
+        if (prefix.matches(".*\\.$"))
+            prefix = prefix.replaceAll("\\.", "");
+        
+        ExtendedProperties props = new ExtendedProperties();
+        String regex = "^" + prefix + "\\.";
+        
+        for(String key : stringPropertyNames())
+            if (key.matches(regex + ".*"))
+                props.setProperty(key.replaceFirst(regex, ""), getProperty(key));
+        
+        return props;
+    }
+    
+    /**
+     * <p>Get the property array associated with the specified key.</p>
+     * @param key - the property key.
+     * @return the array of values associated with the specified key.
+     */
+    public String[] getPropertyArray(String key) {
+        return getProperty(key).split(Character.toString(delimiter));
+    }
+    
+    /**
+     * <p>Change the delimiter to the character provided. Default is '%'. This will update the delimiter in all
+     * currently stored properties as well.</p>
+     * <p>The following characters cannot be used to delimit a String array: ([{\^-=$!|]})?*+.</p>
+     * @param delimiter - The delimiter character to use in separating subsequent arrays.
+     * @param replaceAll - Specifies if the current delimiter should be replaced in all values.
+     * @return true if delimiter is successfully updated, false otherwise.
+     */
+    public boolean setDelimiter(char delimiter) {
+        validateDelimiter(delimiter);
+        
+        for(Object value : values())
+            if (((String)value).contains(Character.toString(delimiter)))
+                return false;
+        
+        for(String key : stringPropertyNames())
+            if (((String)get(key)).contains(Character.toString(this.delimiter)))
+                put(key, ((String)get(key)).replaceAll(Character.toString(this.delimiter), Character.toString(delimiter)));
+        this.delimiter = delimiter;
+        
+        return true;
+    }
+    
+    /**
+     * <p>Set a property containing an array of values. Use getPropertyArray to retrieve a property into a String array.</p>
+     * @param key - the key to be placed into this property list.
+     * @param values - the array corresponding to key.
+     * @return the previous value (as a String, not an array) of the specified key in this property list, or null, if it did not have one.
+     */
+    public Object setPropertyArray(String key, String[] values) {
+        String array = "";
+        
+        for(String value : values) {
+            if (value.contains(Character.toString(delimiter)))
+                throw new IllegalArgumentException("Array of values cannot contain the delimiter: " + delimiter);
+            
+            array += array.equals("") ? value : delimiter + value;
+        }
+        
+        return setProperty(key, array);
     }
     
     @Override
