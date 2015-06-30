@@ -16,7 +16,6 @@
  <p>Calling getProperties() on an ExtendedProperties instance containing the above would yield
  an array of 2 ExtendedProperties objects; one with connection1 properties and the other with
  connection2.</p></div>
-<dl>
-<dt><span class="simpleTagLabel">Author:</span></dt>
-<dd>Aaron Hannah
- 2015-06-29</dd>
+
+#Author
+Aaron Hannah, 2015
