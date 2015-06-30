@@ -17,5 +17,8 @@
  an array of 2 ExtendedProperties objects; one with connection1 properties and the other with
  connection2.</p></div>
 
-#Author
+# Author
 Aaron Hannah, 2015
+
+# Note
+This class has only undergone minimal testing at this point.
