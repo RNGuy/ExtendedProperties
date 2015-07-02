@@ -279,7 +279,6 @@ public class ExtendedProperties extends Properties {
         if (containsKey("ExtendedProperties.delimiter." + serialVersionUID)) {
             try {
                 this.delimiter = ((String) get("ExtendedProperties.delimiter." + serialVersionUID)).charAt(0);
-                System.out.println(this.delimiter);
             } catch (IndexOutOfBoundsException e) {
                 throw new IOException("Failed to read \"ExtendedProperties.delimiter." + serialVersionUID + "\" value.");
             }
